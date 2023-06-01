@@ -38,17 +38,13 @@ public:
     }    
 };
 
-
-class LegacyClassAdapter: public Component, private LegacyComponent
-{
+class LegacyClassAdapter : public Component, private LegacyComponent {
 public:
-    virtual void run() override
-    {
-        cout << "LegacyClassAdapter::run() -> calling LegacyComponent::go()" << endl;
-        go();
+    virtual void run() override {
+        std::cout << "LegacyClassAdapter::run() -> calling LegacyComponent::go()" << std::endl;
+        LegacyComponent::go();
     }
 };
-
 
 int main()
 {    
