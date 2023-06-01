@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 using namespace std;
 
@@ -37,21 +38,17 @@ public:
     }    
 };
 
-class LegacyClassAdapter: public Component, private LegacyComponent
-{
+class LegacyAdapter : public Component {
 public:
-    LegacyAdapter() : m_adaptee(make_unique<LegacyComponent>()) {}
+    LegacyAdapter() : m_adaptee(std::make_unique<LegacyComponent>()) {}
 
-    virtual void run() override
-    {
-        cout << "LegacyAdapter::run() -> calling LegacyComponent::go()" << endl;
+    virtual void run() override {
+        std::cout << "LegacyAdapter::run() -> calling LegacyComponent::go()" << std::endl;
         m_adaptee->go();
     }
-
 private:
-    unique_ptr<LegacyComponent> m_adaptee;
+    std::unique_ptr<LegacyComponent> m_adaptee;
 };
-
 
 int main()
 {    
