@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <string>
 
 using namespace std;
@@ -58,17 +59,49 @@ private:
     double m_Side3;
 };
 
+class CompositeShape : public Shape {
+private:
+    std::vector<Shape*> m_Shapes;
+
+public:
+    void addShape(Shape &shape) {
+        m_Shapes.push_back(&shape);
+    }
+
+    void draw() const override
+    {
+        cout << "Drawing a composite shape" << endl;
+        for (const auto &shape : m_Shapes) {
+            shape->draw();
+        }
+    }
+
+    void removeShape(Shape &shape) {
+        m_Shapes.erase(std::remove(m_Shapes.begin(), m_Shapes.end(), &shape), m_Shapes.end());
+    }
+};
+
 int main()
 {
-    vector<Shape *> shapes{
-        new Circle(5),
-        new Rectangle(10, 20),
-        new Triangle(3, 4, 5)};
+    Circle c(5);
+    Rectangle r(10, 20);
+    Triangle t(3, 4, 5);
 
-    for (const auto &shape : shapes)
-    {
-        shape->draw();
-    }
+    // Create a composite shape
+    CompositeShape cs;
+
+    cs.addShape(c);
+    cs.addShape(r);
+    cs.addShape(t);
+
+    // Draw the composite shape
+    cs.draw();
+
+    // Remove a shape from the composite shape
+    cs.removeShape(r);
+
+    // Draw the composite shape again
+    cs.draw();
 
     return 0;
 }
