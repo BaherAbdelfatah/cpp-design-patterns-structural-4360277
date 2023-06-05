@@ -39,60 +39,48 @@ public:
     }
 };
 
-// Upgrades
-class DesktopWithMemoryUpgrade : public Desktop
-{
+class ComputerDecorator : public Computer {
 public:
-    string description() const override
-    {
-        return "Desktop with memory upgrade";
+    explicit ComputerDecorator(Computer* computer) : m_Computer(computer) {}
+
+    std::string description() const override {
+        return m_Computer->description();
     }
 
     double price() const override
     {
-        return 1700.0;
+        return m_Computer->price();
+    }
+
+protected:
+    const Computer* m_Computer;
+};
+
+class MemoryUpgradeDecorator : public ComputerDecorator {
+public:
+    explicit MemoryUpgradeDecorator(Computer* computer) : ComputerDecorator(computer) {}
+
+    std::string description() const override {
+        return ComputerDecorator::description() + " with memory upgrade";
+    }
+
+    double price() const override
+    {
+        return ComputerDecorator::price() + 500.0;
     }
 };
 
-class LaptopWithMemoryUpgrade : public Laptop
-{
+class GraphicsUpgradeDecorator : public ComputerDecorator {
 public:
-    string description() const override
-    {
-        return "Laptop with memory upgrade";
+    explicit GraphicsUpgradeDecorator(Computer* computer) : ComputerDecorator(computer) {}
+
+    std::string description() const override {
+        return ComputerDecorator::description() + " with graphics upgrade";
     }
 
     double price() const override
     {
-        return 2000.0;
-    }
-};
-
-class DesktopWithGraphicsUpgrade : public Desktop
-{
-public:
-    string description() const override
-    {
-        return "Desktop with graphics upgrade";
-    }
-
-    double price() const override
-    {
-        return 2000.0;
-    }
-};
-
-class LaptopWithGraphicsUpgrade : public Laptop
-{
-public:
-    string description() const override
-    {
-        return "Laptop with graphics upgrade";
-    }
-
-    double price() const override
-    {
-        return 2700.0;
+        return ComputerDecorator::price() + 500.0;
     }
 };
 
@@ -104,16 +92,16 @@ int main()
     Computer *laptop = new Laptop();
     cout << laptop->description() << " costs $" << laptop->price() << endl;
 
-    Computer *desktopGraphicsUpgrade = new DesktopWithGraphicsUpgrade();
+    Computer *desktopGraphicsUpgrade = new GraphicsUpgradeDecorator(desktop);
     cout << desktopGraphicsUpgrade->description() << " costs $" << desktopGraphicsUpgrade->price() << endl;
 
-    Computer *desktopMemoryUpgrade = new DesktopWithMemoryUpgrade();
+    Computer *desktopMemoryUpgrade = new MemoryUpgradeDecorator(desktop);
     cout << desktopMemoryUpgrade->description() << " costs $" << desktopMemoryUpgrade->price() << endl;
 
-    Computer *laptopGraphicsUpgrade = new LaptopWithGraphicsUpgrade();
+    Computer *laptopGraphicsUpgrade = new GraphicsUpgradeDecorator(laptop);
     cout << laptopGraphicsUpgrade->description() << " costs $" << laptopGraphicsUpgrade->price() << endl;
 
-    Computer *laptopMemoryUpgrade = new LaptopWithMemoryUpgrade();
+    Computer *laptopMemoryUpgrade = new MemoryUpgradeDecorator(laptop);
     cout << laptopMemoryUpgrade->description() << " costs $" << laptopMemoryUpgrade->price() << endl;
 
     delete desktop;
