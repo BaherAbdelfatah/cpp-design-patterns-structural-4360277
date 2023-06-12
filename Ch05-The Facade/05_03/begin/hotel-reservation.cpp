@@ -34,19 +34,28 @@ public:
     }
 };
 
+class ReservationSystemFacade {
+public:
+    ReservationSystemFacade() : m_Database(), m_PaymentGateway(), m_MessagingService() {}
+
+    void MakeReservation(const std::string& reservationInfo, const std::string& paymentInfo) {
+        m_Database.storeReservation(reservationInfo);
+        m_PaymentGateway.processPayment(paymentInfo);
+        m_MessagingService.sendConfirmation("Reservation confirmed.");
+    }
+private:
+    Database m_Database;
+    PaymentGateway m_PaymentGateway;
+    MessagingService m_MessagingService;
+};
+
 int main()
 {
-    Database db;
-    PaymentGateway paymentGateway;
-    MessagingService messagingService;
+    ReservationSystemFacade reservationSystem;
 
     const string reservation = "Room reservation info";
-    db.storeReservation(reservation);
-
     const string paymentInfo = "Payment info";
-    paymentGateway.processPayment(paymentInfo);
 
-    messagingService.sendConfirmation("Reservation confirmed.");
-
+    reservationSystem.MakeReservation(reservation, paymentInfo);
     return 0;
 }

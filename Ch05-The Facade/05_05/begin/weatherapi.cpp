@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <tuple>
+#include <sstream>
 
 using namespace std;
 
@@ -41,27 +43,43 @@ public:
     }
 };
 
+class WeatherFacade {
+public:
+    WeatherFacade() : m_WorldWeather(), m_FreeWeather(), m_RealtimeWeather() {}
+
+    const std::string CurrentWeather(string location) {
+        // Call each API and combine the results
+        tuple<float, float, string> worldWeatherResult = m_WorldWeather.getWeather(location);
+        tuple<float, string> freeWeatherResult = m_FreeWeather.retrieve_weather(location);
+        tuple<float, float, string> realtimeWeatherResult = m_RealtimeWeather.weatherConditions(location);
+
+        // Combine the results into a single string
+        float temperature = get<0>(worldWeatherResult);
+        float humidity = get<1>(realtimeWeatherResult);
+        string shortDescription = get<1>(freeWeatherResult);
+
+        std::stringstream result;
+
+        result << "\nWeather for " << location << endl
+            << shortDescription << endl
+            << "Temperature: " << temperature << " C" << endl
+            << "Humidity: " << humidity << " %" << endl;
+
+        return result.str();
+    }
+private:
+    WorldWeatherAPI m_WorldWeather;
+    FreeWeather m_FreeWeather;
+    RealtimeWeatherService m_RealtimeWeather;
+};
+
 int main()
 {
-    WorldWeatherAPI worldWeather;
-    FreeWeather freeWeather;
-    RealtimeWeatherService realtimeWeather;
+    WeatherFacade weatherFacade;
 
     auto const location = "San Francisco, CA, US";
-    // Call each API and combine the results
-    tuple<float, float, string> worldWeatherResult = worldWeather.getWeather(location);
-    tuple<float, string> freeWeatherResult = freeWeather.retrieve_weather(location);
-    tuple<float, float, string> realtimeWeatherResult = realtimeWeather.weatherConditions(location);
-
-    // Combine the results into a single string
-    float temperature = get<0>(worldWeatherResult);
-    float humidity = get<1>(realtimeWeatherResult);
-    string shortDescription = get<1>(freeWeatherResult);
-
-    cout << "\nWeather for " << location << endl
-         << shortDescription << endl
-         << "Temperature: " << temperature << " C" << endl
-         << "Humidity: " << humidity << " %" << endl;
+    // Call CurrentWeather API to combine the results
+    cout << weatherFacade.CurrentWeather(location) << endl;
 
     return 0;
 }
