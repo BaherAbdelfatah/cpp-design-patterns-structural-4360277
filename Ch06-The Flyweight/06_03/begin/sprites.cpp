@@ -1,22 +1,21 @@
 #include <iostream>
 #include <vector>
+#include <random>
+#include <unordered_map>
 
 using namespace std;
 
 class Texture
 {
 public:
-    explicit Texture(const string &fileName) : m_FileName(fileName), m_Id(arc4random_uniform(INT_MAX)) {}
+    explicit Texture(const string &fileName) : m_FileName(fileName), m_Id(rand()) {
+        cout << "Creating texture from " << m_FileName << endl;
+    }
 
     const string description() const
     {
         return "<" + m_FileName + " id" + to_string(m_Id) + ">";
     }
-    ~Texture()
-    {
-        cout << "Destructing " << description() << endl;
-    }
-    // other texture manipulation methods
 private:
     const string m_FileName;
     const int m_Id;
@@ -25,7 +24,17 @@ private:
 class Sprite
 {
 public:
-    Sprite(int width, int height, int x, int y, const string &textureFileName) : m_Width(width), m_Height(height), m_X(x), m_Y(y), m_Texture(new Texture(textureFileName)) {}
+    Sprite(const Texture *texture) : m_Texture(texture) {
+        cout << "Creating sprite with texture file" << texture->description() << endl;
+    }
+
+    void setPositionSize(int x, int y, int width, int height)
+    {
+        m_X = x;
+        m_Y = y;
+        m_Width = width;
+        m_Height = height;
+    }
 
     void render()
     {
@@ -33,19 +42,53 @@ public:
         cout << "Rendering sprite with texture: " << m_Texture->description() << endl;
     }
 
-    ~Sprite()
-    {
-        cout << "Destructing sprite with texture " << m_Texture->description() << endl;
-        delete m_Texture;
+private:
+    int m_Width;
+    int m_Height;
+    int m_X;
+    int m_Y;
+
+    const Texture *m_Texture;
+};
+
+class SpriteFactory {
+public:
+    Sprite* makeSprite(const std::string &fileName) {
+        auto it = m_SpritePool.find(fileName);
+        if (m_SpritePool.end() != it) {
+            return it->second;
+        } else {
+            const auto texture = getTexture(fileName);
+            auto newIt = m_SpritePool.emplace(fileName, new Sprite(texture));
+            return newIt.first->second;
+        }
+    }
+
+    ~SpriteFactory() {
+        for (auto& sprite_pair : m_SpritePool) {
+            delete sprite_pair.second;
+        }
+
+        for (auto& texture_pair : m_TexturePool) {
+            delete texture_pair.second;
+        }
     }
 
 private:
-    const int m_Width;
-    const int m_Height;
-    const int m_X;
-    const int m_Y;
+    std::unordered_map<std::string, Sprite*> m_SpritePool;
+    std::unordered_map<std::string, Texture*> m_TexturePool;
 
-    const Texture *m_Texture;
+    const Texture* getTexture(const std::string &fileName) {
+        auto it = m_TexturePool.find(fileName);
+        if (it != m_TexturePool.end()) {
+            // texture already exists in pool, return it.
+            return it->second;
+        } else {
+            // create new texture and add it to the pool.
+            auto newIt = m_TexturePool.emplace(fileName, new Texture(fileName));
+            return newIt.first->second;
+        }
+    }
 };
 
 int main()
@@ -55,22 +98,13 @@ int main()
     const int numSprites = 10;
     const string textureFile = "spaceship.png";
 
+    SpriteFactory factory;
+
     for (int i = 0; i < numSprites; ++i)
     {
-        auto sprite = new Sprite(10, 10, i * 10, i * 10, textureFile);
+        auto sprite = factory.makeSprite(textureFile);
+        sprite->setPositionSize(10, 10, 10 * i, 10 * i);
         sprites.push_back(sprite);
-    }
-
-    // draw all sprites
-    for (auto &sprite : sprites)
-    {
-        sprite->render();
-    }
-
-    // cleanup
-    for (auto &sprite : sprites)
-    {
-        delete(sprite);
     }
 
     return 0;
