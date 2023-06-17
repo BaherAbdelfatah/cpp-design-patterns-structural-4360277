@@ -40,10 +40,28 @@ private:
     vector<string> settings;
 };
 
+class ConfigFileProxy : public ConfigFile {
+public:
+    explicit ConfigFileProxy(const string &filename) : filename(filename), realConfigFile(nullptr) {
+        std::cout << "ConfigFileProxy created." << std::endl;
+    }
+
+    vector<string> getSettings() override
+    {
+        if (nullptr == realConfigFile) {
+            realConfigFile = std::make_unique<RealConfigFile>(filename);
+        }
+        return realConfigFile->getSettings();
+    }
+
+private:
+    std::string filename;
+    std::unique_ptr<RealConfigFile> realConfigFile;
+};
 
 int main()
 {
-    RealConfigFile configFile("config.txt");
+    ConfigFileProxy configFile("config.txt");
 
     bool useSettings = true;
 
